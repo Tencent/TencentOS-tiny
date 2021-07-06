@@ -69,7 +69,7 @@ __API__ k_err_t tos_bitmap_set(k_bitmap_t *bitmap, uint32_t bit)
     TOS_PTR_SANITY_CHECK(bitmap);
     TOS_OBJ_VERIFY(bitmap, KNL_OBJ_TYPE_BITMAP);
 
-    if (bit > bitmap->bit_max) {
+    if (bit >= bitmap->bit_max) {
         return K_ERR_BITMAP_EXCEED;
     }
 
@@ -83,7 +83,7 @@ __API__ k_err_t tos_bitmap_reset(k_bitmap_t *bitmap, uint32_t bit)
     TOS_PTR_SANITY_CHECK(bitmap);
     TOS_OBJ_VERIFY(bitmap, KNL_OBJ_TYPE_BITMAP);
 
-    if (bit > bitmap->bit_max) {
+    if (bit >= bitmap->bit_max) {
         return K_ERR_BITMAP_EXCEED;
     }
 
@@ -97,7 +97,7 @@ __API__ int tos_bitmap_is_set(k_bitmap_t *bitmap, uint32_t bit)
     TOS_PTR_SANITY_CHECK_RC(bitmap, K_FALSE);
     TOS_OBJ_VERIFY_RC(bitmap, KNL_OBJ_TYPE_BITMAP, K_FALSE);
 
-    if (bit > bitmap->bit_max) {
+    if (bit >= bitmap->bit_max) {
         return K_FALSE;
     }
 
@@ -109,7 +109,7 @@ __API__ int tos_bitmap_is_reset(k_bitmap_t *bitmap, uint32_t bit)
     TOS_PTR_SANITY_CHECK_RC(bitmap, K_FALSE);
     TOS_OBJ_VERIFY_RC(bitmap, KNL_OBJ_TYPE_BITMAP, K_FALSE);
 
-    if (bit > bitmap->bit_max) {
+    if (bit >= bitmap->bit_max) {
         return K_FALSE;
     }
 
@@ -126,18 +126,18 @@ __API__ int tos_bitmap_lsb(k_bitmap_t *bitmap)
 
     bitmap_tbl = bitmap->bitmap_tbl;
 
-    for (i = 0; i < bitmap->bit_ndx_max - 1; ++i) {
+    for (i = 0; i < bitmap->bit_ndx_max; ++i) {
         if (*bitmap_tbl == 0) {
-            lsb += K_BITMAP_SLOT_SIZE;
             ++bitmap_tbl;
         }
+        else{
+            lsb = i * K_BITMAP_SLOT_SIZE;
+            lsb += tos_cpu_clz(*bitmap_tbl);
+            return lbs;
+        }
     }
-
-    lsb += tos_cpu_clz(*bitmap_tbl);
-    if (lsb > bitmap->bit_max) {
-        return bitmap->bit_max + 1;
-    }
-
-    return lsb;
+    
+    // 如果没找到为什么不返回 -1(not_exist) 之类的值
+    return bitmap->bit_max;
 }
 
