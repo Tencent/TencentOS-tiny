@@ -25,5 +25,11 @@
 #define TOS_CFG_CPU_LEAD_ZEROS_ASM_PRESENT      0u
 #define TOS_CFG_CPU_BYTE_ORDER                  CPU_BYTE_ORDER_LITTLE_ENDIAN
 
+#if __riscv_xlen == 64
+# define LWU      lwu
+#else
+# define LWU      lw
+#endif
+
 #endif /* _PORT_CONFIG_H_ */
 

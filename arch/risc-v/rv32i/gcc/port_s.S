@@ -159,8 +159,8 @@ port_sched_start:
     csrs    mie, t0
 
     // load sp from k_curr_task->sp
-    lw      t0, k_curr_task
-    lw      sp, (t0)                // sp = k_curr_task->sp
+    LWU      t0, k_curr_task
+    LWU      sp, (t0)                // sp = k_curr_task->sp
 
     j       restore_context
 
@@ -213,55 +213,55 @@ switch_task:
     la      t1, k_next_task         // t1 = &k_next_task
 
     // save sp to k_curr_task.sp
-    lw      t2, (t0)
+    LWU      t2, (t0)
     sw      sp, (t2)
 
     // switch task
     // k_curr_task = k_next_task
-    lw      t1, (t1)                // t1 = k_next_task
+    LWU      t1, (t1)                // t1 = k_next_task
     sw      t1, (t0)
 
     // load new task sp
-    lw      sp, (t1)
+    LWU      sp, (t1)
 
 restore_context:
     // restore context
-    lw      t0,   __reg_mepc_OFFSET(sp)
+    LWU      t0,   __reg_mepc_OFFSET(sp)
     csrw    mepc, t0
 
-    lw      t0,   __reg_mstatus_OFFSET(sp)
+    LWU      t0,   __reg_mstatus_OFFSET(sp)
     csrw    mstatus, t0
 
-    lw x1, __reg_x1_OFFSET(sp)
-    lw x3, __reg_x3_OFFSET(sp)
-    lw x4, __reg_x4_OFFSET(sp)
-    lw x5, __reg_x5_OFFSET(sp)
-    lw x6, __reg_x6_OFFSET(sp)
-    lw x7, __reg_x7_OFFSET(sp)
-    lw x8, __reg_x8_OFFSET(sp)
-    lw x9, __reg_x9_OFFSET(sp)
-    lw x10, __reg_x10_OFFSET(sp)
-    lw x11, __reg_x11_OFFSET(sp)
-    lw x12, __reg_x12_OFFSET(sp)
-    lw x13, __reg_x13_OFFSET(sp)
-    lw x14, __reg_x14_OFFSET(sp)
-    lw x15, __reg_x15_OFFSET(sp)
-    lw x16, __reg_x16_OFFSET(sp)
-    lw x17, __reg_x17_OFFSET(sp)
-    lw x18, __reg_x18_OFFSET(sp)
-    lw x19, __reg_x19_OFFSET(sp)
-    lw x20, __reg_x20_OFFSET(sp)
-    lw x21, __reg_x21_OFFSET(sp)
-    lw x22, __reg_x22_OFFSET(sp)
-    lw x23, __reg_x23_OFFSET(sp)
-    lw x24, __reg_x24_OFFSET(sp)
-    lw x25, __reg_x25_OFFSET(sp)
-    lw x26, __reg_x26_OFFSET(sp)
-    lw x27, __reg_x27_OFFSET(sp)
-    lw x28, __reg_x28_OFFSET(sp)
-    lw x29, __reg_x29_OFFSET(sp)
-    lw x30, __reg_x30_OFFSET(sp)
-    lw x31, __reg_x31_OFFSET(sp)
+    LWU x1, __reg_x1_OFFSET(sp)
+    LWU x3, __reg_x3_OFFSET(sp)
+    LWU x4, __reg_x4_OFFSET(sp)
+    LWU x5, __reg_x5_OFFSET(sp)
+    LWU x6, __reg_x6_OFFSET(sp)
+    LWU x7, __reg_x7_OFFSET(sp)
+    LWU x8, __reg_x8_OFFSET(sp)
+    LWU x9, __reg_x9_OFFSET(sp)
+    LWU x10, __reg_x10_OFFSET(sp)
+    LWU x11, __reg_x11_OFFSET(sp)
+    LWU x12, __reg_x12_OFFSET(sp)
+    LWU x13, __reg_x13_OFFSET(sp)
+    LWU x14, __reg_x14_OFFSET(sp)
+    LWU x15, __reg_x15_OFFSET(sp)
+    LWU x16, __reg_x16_OFFSET(sp)
+    LWU x17, __reg_x17_OFFSET(sp)
+    LWU x18, __reg_x18_OFFSET(sp)
+    LWU x19, __reg_x19_OFFSET(sp)
+    LWU x20, __reg_x20_OFFSET(sp)
+    LWU x21, __reg_x21_OFFSET(sp)
+    LWU x22, __reg_x22_OFFSET(sp)
+    LWU x23, __reg_x23_OFFSET(sp)
+    LWU x24, __reg_x24_OFFSET(sp)
+    LWU x25, __reg_x25_OFFSET(sp)
+    LWU x26, __reg_x26_OFFSET(sp)
+    LWU x27, __reg_x27_OFFSET(sp)
+    LWU x28, __reg_x28_OFFSET(sp)
+    LWU x29, __reg_x29_OFFSET(sp)
+    LWU x30, __reg_x30_OFFSET(sp)
+    LWU x31, __reg_x31_OFFSET(sp)
     addi    sp, sp, 128
 
     mret
@@ -298,7 +298,7 @@ rv32_exception_entry:
 
     mv      t0, sp
     // switch to irq stack
-    lw      sp, k_irq_stk_top
+    LWU      sp, k_irq_stk_top
     // save task stack pointer
     sw      t0, (sp)
 
@@ -309,39 +309,39 @@ rv32_exception_entry:
     call    cpu_irq_entry
 
     // switch back to task stack
-    lw      sp, (sp)
+    LWU      sp, (sp)
 
-    lw      t0,  k_curr_task
-    lw      t1,  k_next_task
+    LWU      t0,  k_curr_task
+    LWU      t1,  k_next_task
 
     // unlikely
     bne     t0,  t1, irq_task_switch
 
 irq_restore:
-    lw      t0,   __reg_mepc_OFFSET(sp)
+    LWU      t0,   __reg_mepc_OFFSET(sp)
     csrw    mepc, t0
 
-    lw      t0,   __reg_mstatus_OFFSET(sp)
+    LWU      t0,   __reg_mstatus_OFFSET(sp)
     csrw    mstatus, t0
 
-    lw ra, __reg_ra__OFFSET(sp)
-    lw gp, __reg_gp__OFFSET(sp)
-    lw tp, __reg_tp__OFFSET(sp)
-    lw t0, __reg_t0__OFFSET(sp)
-    lw t1, __reg_t1__OFFSET(sp)
-    lw t2, __reg_t2__OFFSET(sp)
-    lw t3, __reg_t3__OFFSET(sp)
-    lw t4, __reg_t4__OFFSET(sp)
-    lw t5, __reg_t5__OFFSET(sp)
-    lw t6, __reg_t6__OFFSET(sp)
-    lw a0, __reg_a0__OFFSET(sp)
-    lw a1, __reg_a1__OFFSET(sp)
-    lw a2, __reg_a2__OFFSET(sp)
-    lw a3, __reg_a3__OFFSET(sp)
-    lw a4, __reg_a4__OFFSET(sp)
-    lw a5, __reg_a5__OFFSET(sp)
-    lw a6, __reg_a6__OFFSET(sp)
-    lw a7, __reg_a7__OFFSET(sp)
+    LWU ra, __reg_ra__OFFSET(sp)
+    LWU gp, __reg_gp__OFFSET(sp)
+    LWU tp, __reg_tp__OFFSET(sp)
+    LWU t0, __reg_t0__OFFSET(sp)
+    LWU t1, __reg_t1__OFFSET(sp)
+    LWU t2, __reg_t2__OFFSET(sp)
+    LWU t3, __reg_t3__OFFSET(sp)
+    LWU t4, __reg_t4__OFFSET(sp)
+    LWU t5, __reg_t5__OFFSET(sp)
+    LWU t6, __reg_t6__OFFSET(sp)
+    LWU a0, __reg_a0__OFFSET(sp)
+    LWU a1, __reg_a1__OFFSET(sp)
+    LWU a2, __reg_a2__OFFSET(sp)
+    LWU a3, __reg_a3__OFFSET(sp)
+    LWU a4, __reg_a4__OFFSET(sp)
+    LWU a5, __reg_a5__OFFSET(sp)
+    LWU a6, __reg_a6__OFFSET(sp)
+    LWU a7, __reg_a7__OFFSET(sp)
     addi    sp, sp, 128
 
     mret
