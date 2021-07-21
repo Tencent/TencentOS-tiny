@@ -170,6 +170,9 @@ __API__ k_err_t tos_ring_q_dequeue(k_ring_q_t *ring_q, void *item, size_t *item_
 
     TOS_CPU_INT_DISABLE();
 
+    // tos_ring_q_is_empty 内部使用了 TOS_CPU_INT_ENABLE()
+    // 如果中断的开闭不是递归锁将导致同步问题
+    // 其他地方应该也有类似的问题
     if (tos_ring_q_is_empty(ring_q)) {
         TOS_CPU_INT_ENABLE();
         return K_ERR_RING_Q_EMPTY;

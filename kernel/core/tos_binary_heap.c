@@ -48,10 +48,11 @@ __STATIC__ void bin_heap_do_percolate_up(k_bin_heap_t *bin_heap, uint16_t hole, 
     void *hole_item, *parent_item;
 
     top         = 0u;
-    parent      = BIN_HEAP_PARENT(hole);
+    parent      = BIN_HEAP_PARENT(hole); // hole = 0 时，parent -> 0xffff
     cmp         = bin_heap->cmp;
     item_size   = bin_heap->item_size;
 
+    // parent = 0xffff 时非法内存访问（嵌入式也许不会出现异常）
     hole_item   = BIN_HEAP_THE_ITEM(bin_heap, hole);
     parent_item = BIN_HEAP_THE_ITEM(bin_heap, parent);
 
@@ -59,6 +60,8 @@ __STATIC__ void bin_heap_do_percolate_up(k_bin_heap_t *bin_heap, uint16_t hole, 
         memcpy(hole_item, parent_item, item_size);
         hole        = parent;
         parent      = BIN_HEAP_PARENT(hole);
+        
+        // 非法内存访问
         hole_item   = BIN_HEAP_THE_ITEM(bin_heap, hole);
         parent_item = BIN_HEAP_THE_ITEM(bin_heap, parent);
     }
@@ -86,6 +89,8 @@ __STATIC__ void bin_heap_percolate_down(k_bin_heap_t *bin_heap)
     item_size       = bin_heap->item_size;
 
     hole_item       = BIN_HEAP_THE_ITEM(bin_heap, hole);
+    
+    // 非法内存访问，当此时 the_child >= bin_heap->total
     rchild_item     = BIN_HEAP_THE_ITEM(bin_heap, rchild);
     lchild_item     = BIN_HEAP_THE_ITEM(bin_heap, lchild);
 
@@ -106,11 +111,18 @@ __STATIC__ void bin_heap_percolate_down(k_bin_heap_t *bin_heap)
         lchild_item = BIN_HEAP_THE_ITEM(bin_heap, lchild);
     }
 
+    // bin_heap->total 在 tos_bin_heap_pop 中通过 bin_heap_item_decrease 先减了 1
+    // 假如本来有 3 个元素，现在 pop 一下就会变成 2 个，而 the_child 也是 2
+    // 这里直接将左节点的值赋值给父节点不正确，对于小根堆，如果右节点比左节点小，
+    // 那么小根堆将出现父节点大于子结点的情况
+    // 而左节点会在 bin_heap_do_percolate_up 中被替换成 BIN_HEAP_LAST_ITEM(bin_heap)，
+    // 也就是被替换成右节点
     if (the_child == bin_heap->total) {
         memcpy(hole_item, lchild_item, item_size);
-        hole        = lchild;
+        hole        = lchild; // hole 指向左节点
         hole_item   = BIN_HEAP_THE_ITEM(bin_heap, hole);
     }
+    
     bin_heap_do_percolate_up(bin_heap, hole, BIN_HEAP_LAST_ITEM(bin_heap));
 }
 
